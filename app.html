@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yogurt math - the app</title>
+<style>
+  :root { --ink:#23282b; --bg:#f4f6f7; --card:#fff; --accent:#35606d; --accent2:#458095; --soft:#dde9ec; }
+  * { box-sizing:border-box; margin:0; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); padding:18px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+  .lede { text-align:center; color:#4e6066; margin:6px 0 14px; font-size:15px; max-width:760px; margin-left:auto; margin-right:auto; }
+  .banner { background:#fdf3e7; border:1px solid #e8c9a0; color:#8a5a13; border-radius:10px; padding:12px 16px; font-size:14px; line-height:1.5; margin:0 auto 16px; max-width:900px; }
+  .banner b { display:block; margin-bottom:2px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; }
+  .card { background:var(--card); border-radius:14px; padding:22px; box-shadow:0 1px 3px rgba(30,50,60,.08); }
+  h2 { font-size:19px; margin-bottom:14px; }
+  label { display:block; font-size:13px; color:#5e7278; margin:10px 0 4px; }
+  input, select { width:100%; padding:9px 10px; border:1px solid #c6d5d9; border-radius:8px; font-size:15px; background:#fbfdfe; }
+  button { width:100%; margin-top:16px; padding:12px; border:0; border-radius:9px; background:var(--accent); color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
+  button:hover { background:var(--accent2); }
+  .big { font-size:34px; font-weight:700; margin:14px 0 2px; }
+  .cap { font-size:13px; color:#5e7278; }
+  .pill { display:inline-block; margin-top:10px; padding:5px 12px; border-radius:20px; font-size:13px; font-weight:600; }
+  .pill.warm { background:var(--soft); color:var(--accent); }
+  .pill.bad { background:#f9e0dc; color:#a3341f; }
+  .pill.good { background:#e2f0e4; color:#256b32; }
+  table { width:100%; margin-top:12px; border-collapse:collapse; font-size:14px; }
+  td { padding:7px 0; border-bottom:1px solid #e0e9eb; }
+  td:last-child { text-align:right; font-weight:600; }
+  .err { color:#a3341f; font-size:14px; margin-top:10px; }
+  .note { font-size:13px; color:#7e8f94; margin-top:10px; font-style:italic; }
+  .foot { margin-top:20px; font-size:12.5px; color:#6e8085; line-height:1.6; }
+  .foot a { color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="lede">Recipes say "a spoonful of starter, incubate overnight" and stop there. Starter percentage, incubation window and straining yield are multiplication. Run yours before the milk comes off the heat.</p>
+  <div class="banner">
+    <b>Dairy basics still apply.</b>
+    Heat the milk first, cool it before adding starter (hot milk kills the culture - below about 46C / 115F, labeled norm), use clean jars, and chill the finished yogurt promptly. Mold, pink or yeasty smells mean discard the batch. These percentages and windows are labeled published norms, not safety verdicts.
+  </div>
+  <div class="cards">
+    <div class="card">
+      <h2>Plan the batch</h2>
+      <label for="p_milk">Milk (ml)</label>
+      <input id="p_milk" type="number" value="1000" min="0" step="100">
+      <label for="p_style">Style</label>
+      <select id="p_style">
+        <option value="mild">mild (6-8 h)</option>
+        <option value="classic" selected>classic (8-10 h)</option>
+        <option value="tangy">tangy (10-14 h)</option>
+      </select>
+      <button id="p_go">Plan the jars</button>
+      <div class="big" id="p_starter">-</div>
+      <div class="cap">starter culture to whisk in</div>
+      <div class="pill warm" id="p_verdict" style="display:none"></div>
+      <table id="p_rows" style="display:none">
+        <tr><td>total yield</td><td id="p_yield">-</td></tr>
+        <tr><td>incubation window</td><td id="p_hours">-</td></tr>
+      </table>
+      <div class="note" id="p_note" style="display:none"></div>
+      <div class="err" id="p_err"></div>
+    </div>
+    <div class="card">
+      <h2>Strain it</h2>
+      <label for="s_yogurt">Plain yogurt (g)</label>
+      <input id="s_yogurt" type="number" value="1000" min="0" step="50">
+      <label for="s_target">Strain to</label>
+      <select id="s_target">
+        <option value="greek">greek (about 55% kept)</option>
+        <option value="labneh">labneh (about 35% kept)</option>
+      </select>
+      <button id="s_go">Strain the batch</button>
+      <div class="big" id="s_kept">-</div>
+      <div class="cap">thick yogurt you keep</div>
+      <div class="pill warm" id="s_verdict" style="display:none"></div>
+      <table id="s_rows" style="display:none">
+        <tr><td>whey left behind</td><td id="s_whey">-</td></tr>
+      </table>
+      <div class="note" id="s_note" style="display:none"></div>
+      <div class="err" id="s_err"></div>
+    </div>
+    <div class="card">
+      <h2>Still incubating?</h2>
+      <label for="i_style">Style</label>
+      <select id="i_style">
+        <option value="mild">mild</option>
+        <option value="classic" selected>classic</option>
+        <option value="tangy">tangy</option>
+      </select>
+      <label for="i_hours">Hours in the incubator</label>
+      <input id="i_hours" type="number" value="5" min="0" step="0.5">
+      <button id="i_go">Check the window</button>
+      <div class="big" id="i_window">-</div>
+      <div class="cap">style window</div>
+      <div class="pill warm" id="i_status" style="display:none"></div>
+      <div class="note" id="i_note" style="display:none"></div>
+      <div class="err" id="i_err"></div>
+    </div>
+  </div>
+  <p class="foot">Starter percentage (2%), incubation windows (6-14 h by style) and strain yields (55% greek, 35% labneh) are labeled guidance from published yogurt-making norms; your culture, milk and incubator move the real numbers. The arithmetic on top of them is exact. <a href="index.html">Why this exists</a></p>
+</div>
+<script src="engine.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const g = id => parseFloat($(id).value);
+function show(id, txt, cls) { const e = $(id); e.textContent = txt; e.style.display = txt ? 'inline-block' : 'none'; if (cls) e.className = 'pill ' + cls; }
+document.getElementById('p_go').onclick = () => {
+  $('p_err').textContent = '';
+  try {
+    const r = Yogurtmath.plan(g('p_milk'), $('p_style').value);
+    $('p_starter').textContent = r.starterG + ' g';
+    show('p_verdict', r.verdict, 'warm');
+    $('p_yield').textContent = r.yieldMl + ' ml';
+    $('p_hours').textContent = r.hoursLo + ' to ' + r.hoursHi + ' h';
+    $('p_rows').style.display = 'table';
+    show('p_note', r.note);
+  } catch (e) { $('p_err').textContent = e.message; }
+};
+document.getElementById('s_go').onclick = () => {
+  $('s_err').textContent = '';
+  try {
+    const r = Yogurtmath.strain(g('s_yogurt'), $('s_target').value);
+    $('s_kept').textContent = r.keptG + ' g';
+    show('s_verdict', r.verdict, 'warm');
+    $('s_whey').textContent = r.wheyMl + ' ml';
+    $('s_rows').style.display = 'table';
+    show('s_note', r.note);
+  } catch (e) { $('s_err').textContent = e.message; }
+};
+document.getElementById('i_go').onclick = () => {
+  $('i_err').textContent = '';
+  try {
+    const r = Yogurtmath.incubate($('i_style').value, g('i_hours'));
+    $('i_window').textContent = r.hoursLo + '-' + r.hoursHi + ' h';
+    show('i_status', r.status, 'warm');
+    show('i_note', r.note);
+  } catch (e) { $('i_err').textContent = e.message; }
+};
+</script>
+</body>
+</html>
